@@ -2,10 +2,16 @@
 
 # CONTRACT — 데이터 모델 · 영속 포맷 계약서
 
+> **버전**: v2 | **최종 수정일**: 2026-07-15
+
 > 근거: `docs/PRD.md`, `docs/DECISIONS.md`만 사용. 4개 PoC 저장소(ConsoleMVC, DataPersistence,
 > DataMonitor, DummyDataGenerator)에 동일 사본 배포 — 필드명/타입/열거값/포맷/시그니처를 글자 그대로 따를 것.
 > UI·구현코드는 범위 밖(각 저장소 자유). `[결정-리서치]` = SPEC/DECISIONS에 근거 없어 사용자 승인 하에
-> 업계 관행을 웹 리서치로 확정한 항목(SampleId 자료형, Yield 내부표현, 타임스탬프 형식, 스키마버전 필드).
+> 업계 관행을 웹 리서치로 확정한 항목(SampleId 자료형, Yield 내부표현, 타임스탬프 형식, 스키마버전 필드, Delete/참조무결성 정책).
+
+> **이 문서는 이 저장소(SampleOrderSystem-SungkyungWOO-21021147)에서만 개정된다.**
+> PoC 저장소(ConsoleMVC, DataPersistence, DataMonitor, DummyDataGenerator)에 배포된 사본은 읽기 전용이며,
+> 그 사본의 버전 헤더가 이 문서의 최신 버전과 다르면 그 PoC 저장소의 사본은 낡은 것이다 — 반드시 이 문서를 기준으로 갱신할 것.
 
 ## 1. 엔티티
 
@@ -113,8 +119,12 @@ public:
     virtual bool Exists(const std::string& sampleId) const = 0;
     virtual void Add(const SampleRecord& sample) = 0;
     virtual void Update(const SampleRecord& sample) = 0;
+    virtual bool Delete(const std::string& sampleId) = 0;  // 물리적 제거만 수행. 참조무결성 검증(ADR-C2)은 호출자(Model/Controller) 책임 — 존재하지 않으면 false 반환.
 };
 
+// IOrderRepository에는 의도적으로 Delete/Remove 메서드가 없다.
+// Order는 어떤 상태에서도 하드 삭제를 지원하지 않는다 [ADR-C3] — REJECTED/RELEASE 전이(Q6/Q7/Q8)가
+// 논리적 삭제 역할을 하며, FR-32(감사 추적)의 영구 보존 목적과 충돌하므로 누락이 아닌 설계 결정이다.
 class IOrderRepository {
 public:
     virtual ~IOrderRepository() = default;
@@ -126,7 +136,7 @@ public:
     virtual void Update(const OrderRecord& order) = 0;
 };
 ```
-근거: FindById/FindAll [PRD FR-04][PRD FR-08] · Exists [PRD FR-29] · FindByStatus [PRD FR-21] · NextOrderId [ADR-Q15] · Add/Update [PRD FR-01,06,09-12,19,20]
+근거: FindById/FindAll [PRD FR-04][PRD FR-08] · Exists [PRD FR-29] · FindByStatus [PRD FR-21] · NextOrderId [ADR-Q15] · Add/Update [PRD FR-01,06,09-12,19,20] · Delete(Sample만) [PRD FR-33][ADR-C1][ADR-C2] · Order Delete 미지원 [ADR-C3][PRD §6 비범위]
 
 ## 6. 계산 규칙
 
@@ -145,3 +155,10 @@ StockQuantity 변경: T1 `-= OrderQuantity` [PRD FR-09][ADR-Q9] · T2 `-= OrderQ
 · `Sufficient: StockQuantity>=OrderQuantity` [PRD FR-22][ADR-Q5]
 
 곱셈 기호 표기: `×` 사용. [ADR-Q16]
+
+## CHANGELOG
+
+| 버전 | 변경 내용 | 근거 ADR-ID | 영향받는 PoC 저장소 |
+|---|---|---|---|
+| v1 | 최초 버전. PRD.md/DECISIONS.md(Q1~Q16, R1~R10) 전체를 근거로 엔티티(§1)·열거형(§2)·영속 저장 포맷(§3)·상태 전이표(§4)·Repository 인터페이스(§5, Delete 없음)·계산 규칙(§6) 작성. (작성일 미상 — 이 CHANGELOG 도입 이전 소급 기록) | Q1~Q16, R1~R10 전체 | ConsoleMVC, DataPersistence, DataMonitor, DummyDataGenerator (전체 4개) |
+| v2 | SPEC §8 "미션1" PoC 산출물 요구사항("데이터영속성처리 — CRUD 포함")과의 감사 결과 발견된 공백을 메움: `ISampleRepository`에 `Delete` 메서드 추가, 시료 삭제 시 참조무결성 가드(Order가 참조 중이면 삭제 거부) 명시. `IOrderRepository`는 Delete 미지원임을 의도적 설계로 명문화. 문서 최상단에 버전/최종수정일 헤더, "이 저장소에서만 개정" 원칙 추가. 본 CHANGELOG 섹션 신설(v1 소급 기록 포함). | ADR-C1, ADR-C2, ADR-C3 | ConsoleMVC, DataPersistence, DataMonitor, DummyDataGenerator (전체 4개 — Repository 인터페이스 시그니처 변경) |
