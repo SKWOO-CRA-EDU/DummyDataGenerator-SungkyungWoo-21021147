@@ -142,11 +142,13 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="InMemoryRepository.cpp" />
     <ClCompile Include="DummyDataGenerator.cpp" />
+    <ClCompile Include="Tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Contract.h" />
     <ClInclude Include="InMemoryRepository.h" />
     <ClInclude Include="DummyDataGenerator.h" />
+    <ClInclude Include="Tests.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

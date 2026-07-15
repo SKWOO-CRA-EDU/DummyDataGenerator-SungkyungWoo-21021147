@@ -6,13 +6,15 @@
 #include "Contract.h"
 #include "DummyDataGenerator.h"
 #include "InMemoryRepository.h"
+#include "Tests.h"
 
 namespace {
 
 void PrintUsage(const char* programName) {
     std::cout
         << "Usage:\n"
-        << "  " << programName << " <seed> <sampleCount> <orderCount>\n";
+        << "  " << programName << " <seed> <sampleCount> <orderCount>\n"
+        << "  " << programName << " test\n";
 }
 
 int RunGenerate(uint64_t seed, int sampleCount, int orderCount) {
@@ -47,6 +49,10 @@ int RunGenerate(uint64_t seed, int sampleCount, int orderCount) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "test") {
+        return tests::RunAllTests() ? 0 : 1;
+    }
+
     if (argc != 4) {
         PrintUsage(argv[0]);
         return 1;
