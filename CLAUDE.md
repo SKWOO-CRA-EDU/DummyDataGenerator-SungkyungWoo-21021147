@@ -18,6 +18,9 @@ msbuild DummyDataGenerator.vcxproj /p:Configuration=Debug /p:Platform=Win32
   사본이다. 이 저장소에서 **절대 수정하지 않는다.**
 - 계약을 고쳐야 할 이유를 발견하면(필드명/타입/제약이 실제 요구와 맞지 않는 등) 코드로 우회하거나
   계약을 임의로 재해석하지 말고, 즉시 작업을 멈추고 사용자에게 보고한다.
+- CONTRACT.md 는 SampleOrderSystem 에서만 개정된다. 여기 것은 읽기 전용 사본이다.
+- 계약 공백을 발견하면 코드로 우회하지 말고 BLOCKED 항목으로 보고하고 멈춘다.
+- 작업 시작 시 CONTRACT.md 의 버전을 확인한다.
 
 ## 커밋 규칙
 
